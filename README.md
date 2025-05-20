@@ -1,6 +1,8 @@
 # Libgen URL Parser & Downloader
 
-This repo contains two tools that work together to help you (bulk)download books from Library Genesis ( http://libgen.is/ ):
+This repo contains two tools that work together to help you (bulk)download books from Library Genesis.
+
+In the Releases, you'll find the Links.txt containing 3.947.293 links.
 
 1. `parser` - extracts download URLs from Libgen SQL dumps
 2. `downloader` - downloads files from those URLs
