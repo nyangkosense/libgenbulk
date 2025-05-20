@@ -31,7 +31,7 @@ The parser reads a Libgen SQL dump and outputs download URLs:
 ```
 
 It'll show progress as it runs through the file and generates URLs like:
-`https://download.books.ms/main/11000/29c764a1af51f8f9ebfd721a6eac4a7b/Filaseta%20M.%20-%20Algebraic%20number%20theory%20%28Math%20784%29%20%281996%29.pdf`
+`https://download.books.ms/main/11000/MD5 HASH/Filaseta%20M.%20-%20Algebraic%20number%20theory%20%28Math%20784%29%20%281996%29.pdf`
 
 ## Building the Downloader
 
