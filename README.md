@@ -4,7 +4,7 @@ This repo contains two tools that work together to help you (bulk)download books
 
 In the Releases, you'll find the Links.txt containing 3.947.293 links.
 
-1. `parser` - extracts download URLs from Libgen SQL dumps
+1. `parser` - extracts download URLs from Libgen SQL dumps (only tested with the compact one)
 2. `downloader` - downloads files from those URLs
 
 These binaries are compiled on Debian with glibc. 
