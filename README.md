@@ -2,8 +2,8 @@
 
 This repo contains two tools that work together to help you (bulk)download books from Library Genesis ( http://libgen.is/ ):
 
-1. `parser` - Zig tool that extracts download URLs from Libgen SQL dumps
-2. `downloader` - A small tool written in Go that downloads files from those URLs
+1. `parser` - extracts download URLs from Libgen SQL dumps
+2. `downloader` - downloads files from those URLs
 
 These binaries are compiled on Debian with glibc. 
 Recommended to build them yourself from source, see below.
