@@ -1,9 +1,11 @@
 # Libgen URL Parser & Downloader
 
-This repo contains two tools that work together to help you (bulk)download books from Library Genesis ( http://libgen.is/ ):
+This repo contains two tools that work together to help you (bulk)download books from Library Genesis.
 
-1. `parser` - Zig tool that extracts download URLs from Libgen SQL dumps
-2. `downloader` - A small tool written in Go that downloads files from those URLs
+In the Releases, you'll find the Links.txt containing 3.947.293 links.
+
+1. `parser` - extracts download URLs from Libgen SQL dumps
+2. `downloader` - downloads files from those URLs
 
 These binaries are compiled on Debian with glibc. 
 Recommended to build them yourself from source, see below.
@@ -29,7 +31,7 @@ The parser reads a Libgen SQL dump and outputs download URLs:
 ```
 
 It'll show progress as it runs through the file and generates URLs like:
-`https://download.books.ms/main/11000/29c764a1af51f8f9ebfd721a6eac4a7b/Filaseta%20M.%20-%20Algebraic%20number%20theory%20%28Math%20784%29%20%281996%29.pdf`
+`https://download.books.ms/main/11000/MD5 HASH/Filaseta%20M.%20-%20Algebraic%20number%20theory%20%28Math%20784%29%20%281996%29.pdf`
 
 ## Building the Downloader
 
@@ -65,3 +67,4 @@ If your download gets interrupted, just run the command again - it'll pick up wh
 - "segmentation fault" from parser? You might be low on RAM, close other apps
 - "error downloading" from downloader? Check your internet or try with more `-retries`
 - Weird filenames? The downloader handles URL-encoding/special chars automatically
+- 503 Service Unavailable  - not really an Issue, it's just that this content is not available due to whatever Serverside reasons
