@@ -67,3 +67,4 @@ If your download gets interrupted, just run the command again - it'll pick up wh
 - "segmentation fault" from parser? You might be low on RAM, close other apps
 - "error downloading" from downloader? Check your internet or try with more `-retries`
 - Weird filenames? The downloader handles URL-encoding/special chars automatically
+- 503 Service Unavailable  - not really an Issue, it's just that this content is not available due to whatever Serverside reasons
