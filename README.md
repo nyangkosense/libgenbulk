@@ -1,8 +1,12 @@
 # Libgen URL Parser & Downloader
 
+## What is LibGen
+> Library Genesis (shortened to LibGen) is a shadow library project for file-sharing access to scholarly journal articles, academic and general-interest books, images, comics, audiobooks, and magazines. The site enables free access to content that is otherwise paywalled or not digitized elsewhere.****
+
+## What is this Repository about
 This repo contains two tools that work together to help you (bulk)download books from Library Genesis.
 
-In the Releases, you'll find the Links.txt containing 3.947.293 links.
+In the Releases, you'll find the Links.txt containing 3.947.293 links, where each link is a Download URL to a single book.
 
 1. `parser` - extracts download URLs from Libgen SQL dumps (only tested with the compact one)
 2. `downloader` - downloads files from those URLs
