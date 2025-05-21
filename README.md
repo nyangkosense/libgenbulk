@@ -30,6 +30,11 @@ The parser reads a Libgen SQL dump and outputs download URLs:
 ./parser libgen_compact.sql links.txt
 ```
 
+If you want a list of URLs containing a specific Languages:
+```bash
+./parser libgen_compact.sql links_english.txt english, german, italian
+``` 
+
 It'll show progress as it runs through the file and generates URLs like:
 `https://download.books.ms/main/11000/MD5 HASH/Filaseta%20M.%20-%20Algebraic%20number%20theory%20%28Math%20784%29%20%281996%29.pdf`
 
