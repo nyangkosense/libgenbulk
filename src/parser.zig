@@ -12,19 +12,18 @@ pub fn main() !void {
     defer std.process.argsFree(gpa, args);
 
     if (args.len < 2) {
-        std.debug.print("Usage: {s} <sql_file_path> [output_file_path] [language1, language2, ...] [md5_to_debug]\n", .{args[0]});
-        std.debug.print("If output_file_path is not provided, results will be printed to stdout \n", .{});
-        std.debug.print("If no languages are specified, all languages will be included \n", .{});
+        std.debug.print("Usage: {s} <sql_file_path> [output_file_path] [--languages=lang1,lang2,...] [--debug=md5]\n", .{args[0]});
+        std.debug.print("If output_file_path is not provided, results will be printed to stdout\n", .{});
+        std.debug.print("Example: {s} libgen.sql books.txt --languages=english,german,russian\n", .{args[0]});
         return;
     }
 
     const file_path = args[1];
+
     const output_to_file = args.len >= 3;
     const output_path = if (output_to_file) args[2] else "";
 
-    // Optional MD5 to debug - if provided, print all details for this record
-    const debug_md5 = if (args.len >= 4) args[3] else "";
-
+    var debug_md5: []const u8 = "";
     var languages = std.ArrayList([]const u8).init(gpa);
     defer {
         for (languages.items) |lang| {
@@ -33,25 +32,33 @@ pub fn main() !void {
         languages.deinit();
     }
 
-    if (args.len >= 4) {
-        var lang_iter = std.mem.split(u8, args[3], ",");
-        while (lang_iter.next()) |lang| {
-            if (lang.len > 0) {
-                const normalized_lang = try gpa.dupe(u8, lang);
-                for (0..normalized_lang.len) |i| {
-                    normalized_lang[i] = std.ascii.toLower(normalized_lang[i]);
+    for (args[3..]) |arg| {
+        if (std.mem.startsWith(u8, arg, "--languages=")) {
+            const langs_str = arg["--languages=".len..];
+            var lang_iter = std.mem.split(u8, langs_str, ",");
+            while (lang_iter.next()) |lang| {
+                if (lang.len > 0) {
+                    const normalized_lang = try gpa.dupe(u8, lang);
+                    for (0..normalized_lang.len) |i| {
+                        normalized_lang[i] = std.ascii.toLower(normalized_lang[i]);
+                    }
+                    try languages.append(normalized_lang);
                 }
-                try languages.append(normalized_lang);
             }
+        } else if (std.mem.startsWith(u8, arg, "--debug=")) {
+            debug_md5 = arg["--debug=".len..];
         }
+    }
 
+    if (languages.items.len > 0) {
         std.debug.print("Filtering for languages: ", .{});
         for (languages.items) |lang| {
             std.debug.print("{s} ", .{lang});
         }
         std.debug.print("\n", .{});
+    } else {
+        std.debug.print("No language filters - including all languages\n", .{});
     }
-
 
     var output_file: ?fs.File = null;
     if (output_to_file) {
@@ -203,7 +210,7 @@ fn processEntryTupleFromBuffer(tuple_buffer: *std.ArrayList(u8), output_file: ?f
     const locator_raw = if (fields.items.len > 40) fields.items[40] else ""; // Locator is field 40
     const local_raw = if (fields.items.len > 41) fields.items[41] else ""; // Local is field 41
     const language_raw = if (fields.items.len > 12) fields.items[12] else "";
-   
+
     const language = cleanSQLString(language_raw, allocator) catch try allocator.dupe(u8, "");
     defer allocator.free(language);
 
