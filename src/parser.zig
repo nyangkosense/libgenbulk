@@ -12,8 +12,9 @@ pub fn main() !void {
     defer std.process.argsFree(gpa, args);
 
     if (args.len < 2) {
-        std.debug.print("Usage: {s} <sql_file_path> [output_file_path] [md5_to_debug]\n", .{args[0]});
-        std.debug.print("If output_file_path is not provided, results will be printed to stdout\n", .{});
+        std.debug.print("Usage: {s} <sql_file_path> [output_file_path] [language1, language2, ...] [md5_to_debug]\n", .{args[0]});
+        std.debug.print("If output_file_path is not provided, results will be printed to stdout \n", .{});
+        std.debug.print("If no languages are specified, all languages will be included \n", .{});
         return;
     }
 
@@ -24,12 +25,40 @@ pub fn main() !void {
     // Optional MD5 to debug - if provided, print all details for this record
     const debug_md5 = if (args.len >= 4) args[3] else "";
 
+    var languages = std.ArrayList([]const u8).init(gpa);
+    defer {
+        for (languages.items) |lang| {
+            gpa.free(lang);
+        }
+        languages.deinit();
+    }
+
+    if (args.len >= 4) {
+        var lang_iter = std.mem.split(u8, args[3], ",");
+        while (lang_iter.next()) |lang| {
+            if (lang.len > 0) {
+                const normalized_lang = try gpa.dupe(u8, lang);
+                for (0..normalized_lang.len) |i| {
+                    normalized_lang[i] = std.ascii.toLower(normalized_lang[i]);
+                }
+                try languages.append(normalized_lang);
+            }
+        }
+
+        std.debug.print("Filtering for languages: ", .{});
+        for (languages.items) |lang| {
+            std.debug.print("{s} ", .{lang});
+        }
+        std.debug.print("\n", .{});
+    }
+
+
     var output_file: ?fs.File = null;
     if (output_to_file) {
         output_file = try fs.cwd().createFile(output_path, .{});
     }
 
-    try processLargeSQLFile(file_path, output_file, debug_md5, gpa);
+    try processLargeSQLFile(file_path, output_file, debug_md5, &languages, gpa);
 
     if (output_file) |of| {
         of.close();
@@ -38,7 +67,7 @@ pub fn main() !void {
     std.debug.print("SQL processing completed.\n", .{});
 }
 
-fn processLargeSQLFile(file_path: []const u8, output_file: ?fs.File, debug_md5: []const u8, allocator: std.mem.Allocator) !void {
+fn processLargeSQLFile(file_path: []const u8, output_file: ?fs.File, debug_md5: []const u8, languages: *std.ArrayList([]const u8), allocator: std.mem.Allocator) !void {
     std.debug.print("Opening file: {s}\n", .{file_path});
 
     const file = try std.fs.cwd().openFile(file_path, .{});
@@ -107,7 +136,7 @@ fn processLargeSQLFile(file_path: []const u8, output_file: ?fs.File, debug_md5: 
                     }
                 } else if (c == ')' and in_tuple) {
                     try tuple_buffer.append(')'); // Add the closing parenthesis
-                    if (processEntryTupleFromBuffer(&tuple_buffer, output_file, debug_md5, allocator, &entry_count)) {
+                    if (processEntryTupleFromBuffer(&tuple_buffer, output_file, debug_md5, languages, allocator, &entry_count)) {
                         // Success - continue
                     } else |err| {
                         // Log error but continue processing
@@ -128,7 +157,7 @@ fn processLargeSQLFile(file_path: []const u8, output_file: ?fs.File, debug_md5: 
     std.debug.print("Processed {} entries from {} bytes\n", .{ entry_count, bytes_read });
 }
 
-fn processEntryTupleFromBuffer(tuple_buffer: *std.ArrayList(u8), output_file: ?fs.File, debug_md5: []const u8, allocator: std.mem.Allocator, entry_count: *usize) !void {
+fn processEntryTupleFromBuffer(tuple_buffer: *std.ArrayList(u8), output_file: ?fs.File, debug_md5: []const u8, languages: *std.ArrayList([]const u8), allocator: std.mem.Allocator, entry_count: *usize) !void {
     const tuple = tuple_buffer.items;
 
     if (tuple.len < 10) return; // Skip very small tuples
@@ -173,6 +202,10 @@ fn processEntryTupleFromBuffer(tuple_buffer: *std.ArrayList(u8), output_file: ?f
     const md5_raw = if (fields.items.len > 37) fields.items[37] else ""; // MD5 is field 37
     const locator_raw = if (fields.items.len > 40) fields.items[40] else ""; // Locator is field 40
     const local_raw = if (fields.items.len > 41) fields.items[41] else ""; // Local is field 41
+    const language_raw = if (fields.items.len > 12) fields.items[12] else "";
+   
+    const language = cleanSQLString(language_raw, allocator) catch try allocator.dupe(u8, "");
+    defer allocator.free(language);
 
     const id = cleanSQLString(id_raw, allocator) catch try allocator.dupe(u8, "");
     defer allocator.free(id);
@@ -251,6 +284,21 @@ fn processEntryTupleFromBuffer(tuple_buffer: *std.ArrayList(u8), output_file: ?f
         try filename_buffer.appendSlice(".");
         try filename_buffer.appendSlice(extension);
     }
+
+    // SQL LANGUAGE
+    var language_allowed = false;
+    if (languages.items.len == 0) {
+        language_allowed = true;
+    } else {
+        for (languages.items) |allowed_lang| {
+            if (std.ascii.eqlIgnoreCase(language, allowed_lang)) {
+                language_allowed = true;
+                break;
+            }
+        }
+    }
+
+    if (!language_allowed) return;
 
     const filename = filename_buffer.items;
 
