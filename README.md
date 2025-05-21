@@ -30,7 +30,7 @@ The parser reads a Libgen SQL dump and outputs download URLs:
 ./parser libgen_compact.sql links.txt
 ```
 
-If you want a list of URLs containing a specific Languages:
+If you want a list of URLs containing specific Languages:
 ```bash
 ./parser libgen_compact.sql links_english.txt english, german, italian
 ``` 
